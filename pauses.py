@@ -17,10 +17,22 @@ Interval = Tuple[float, float]
 
 
 def find_ffmpeg() -> str:
-    """按 环境变量 → PATH → hermes 自带 的顺序找 ffmpeg。"""
+    """按 环境变量 → 项目目录 → PATH → hermes 自带 的顺序找 ffmpeg。"""
     env = os.environ.get("PAUSEFIX_FFMPEG")
     if env and os.path.isfile(env):
         return env
+    # 放在项目里最省事（换电脑不用配 PATH）：根目录 / tools 下 / ffmpeg*/bin 下都认
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for pat in (
+        os.path.join(root, "ffmpeg.exe"),
+        os.path.join(root, "ffmpeg", "ffmpeg.exe"),
+        os.path.join(root, "ffmpeg", "bin", "ffmpeg.exe"),
+        os.path.join(root, "tools", "ffmpeg.exe"),
+        os.path.join(root, "tools", "ffmpeg*", "bin", "ffmpeg.exe"),
+    ):
+        hits = sorted(glob.glob(pat))
+        if hits:
+            return hits[-1]
     found = shutil.which("ffmpeg")
     if found:
         return found
